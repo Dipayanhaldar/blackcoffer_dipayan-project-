@@ -1,7 +1,7 @@
 import { useFilters } from "../../context/FilterContext";
 import { useFilterOptions } from "../../hooks/useFilterOptions";
 import Spinner from "../common/Spinner";
-import { X, SlidersHorizontal } from "lucide-react";
+import { X, SlidersHorizontal, RotateCcw } from "lucide-react";
 import dashboardLogo from "../../assets/dashboard-logo.png";
 
 const FIELD_LABELS = {
@@ -36,6 +36,7 @@ export default function Sidebar({ open, onClose }) {
 
   const handleReset = () => {
     resetFilters();
+
     if (window.innerWidth < 1024) {
       onClose();
     }
@@ -45,84 +46,95 @@ export default function Sidebar({ open, onClose }) {
     <>
       {open && (
         <div
-          className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-20 bg-slate-950/40 backdrop-blur-sm lg:hidden"
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
 
       <aside
+        aria-label="Dashboard filters"
         className={`
-          fixed top-0 left-0 z-30
-          flex h-screen w-72 flex-col
-          bg-white shadow-lg
+          fixed inset-y-0 left-0 z-30
+          flex h-dvh w-72 flex-col
+          border-r border-slate-200 bg-white
           transition-transform duration-300 ease-in-out
           ${open ? "translate-x-0" : "-translate-x-full"}
-          lg:static lg:translate-x-0 lg:shadow-none
+          lg:static lg:h-screen lg:translate-x-0
         `}
       >
-        <div className="flex items-center justify-between shrink-0 bg-white">
-          <div className="flex items-center gap-3 w-full">
-            <img
-              src={dashboardLogo}
-              alt="Dashboard Logo"
-              className="w-full h-[61.7px] object-contain"
-            />
-          </div>
-
-          {/* {activeFilters > 0 && (
-              <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-white">
-                {activeFilters}
-              </span>
-            )} */}
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3">
+          <img
+            src={dashboardLogo}
+            alt="InsightBoard"
+            className="h-10 max-w-[190px] object-contain object-left"
+          />
 
           <button
+            type="button"
             onClick={onClose}
-            className="rounded-md p-3 text-gray-500 hover:bg-gray-100 lg:hidden"
+            aria-label="Close navigation menu"
+            className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 lg:hidden"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4 shadow-[inset_0_2px_8px_rgba(0,0,0,0.08)]"> 
+        <div className="flex items-center justify-between px-4 pb-2 pt-5">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-sky-600" />
+
+            <h2 className="text-sm font-bold text-slate-900">
+              Filters
+            </h2>
+          </div>
+
+          <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700">
+            {activeFilters} active
+          </span>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-3">
           {loading && (
-            <div className="flex justify-center py-10">
+            <div
+              className="flex justify-center py-10"
+              role="status"
+              aria-label="Loading filter options"
+            >
               <Spinner size="sm" />
             </div>
           )}
 
           {error && (
-            <p className="text-sm text-red-500">{error}</p>
+            <p
+              className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600"
+              role="alert"
+            >
+              {error}
+            </p>
           )}
 
           {!loading && !error && (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {FIELD_ORDER.map((field) => {
                 const values = options[field] || [];
 
                 return (
                   <div key={field}>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor={`filter-${field}`}
+                      className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600"
+                    >
                       {FIELD_LABELS[field]}
                     </label>
 
                     <select
+                      id={`filter-${field}`}
                       value={filters[field] || ""}
-                      onChange={(e) =>
-                        setFilter(field, e.target.value)
+                      onChange={(event) =>
+                        setFilter(field, event.target.value)
                       }
-                      className="
-                        w-full rounded-lg
-                        border border-gray-300
-                        bg-white
-                        px-3 py-2.5
-                        text-sm text-gray-700
-                        shadow-sm
-                        transition
-                        focus:border-brand-500
-                        focus:outline-none
-                        focus:ring-2
-                        focus:ring-brand-200
-                      "
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition hover:border-slate-300 focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
                     >
                       <option value="">All</option>
 
@@ -139,22 +151,13 @@ export default function Sidebar({ open, onClose }) {
           )}
         </div>
 
-        <div className="border-t border-gray-200 p-2 shrink-0 bg-white">
+        <div className="shrink-0 border-t border-slate-200 bg-white p-4">
           <button
+            type="button"
             onClick={handleReset}
-            className="
-              w-full
-              rounded-lg
-              bg-brand-500
-              px-4
-              py-2.5
-              text-sm
-              font-semibold
-              text-white
-              transition
-              hover:bg-brand-600
-            "
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-100"
           >
+            <RotateCcw className="h-4 w-4" />
             Reset Filters
           </button>
         </div>
